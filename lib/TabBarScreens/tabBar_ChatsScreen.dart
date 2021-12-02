@@ -13,6 +13,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
     "Nazif Göymen",
     "Cem İşeri",
     "Onur Şimşek",
+    "İbrahim Uğurlu",
     "Özüm Düvenci"
   ];
 
@@ -20,6 +21,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
     "Merhaba, nasılsın?",
     "Dolar yükselmeye devam eder.",
     "Yarın kahve içelim mi?",
+    "Amasya'yı çok seviyorum!",
     "Mavi rengini hiçbir zaman sevmedim.",
   ];
 
@@ -27,7 +29,24 @@ class _ChatsScreenState extends State<ChatsScreen> {
     "13:15",
     "09:55",
     "Yesterday",
+    "Yesterday",
     "25.11.2021",
+  ];
+
+  List<IconData> seenStatusList = [
+    Icons.done,
+    Icons.done_all,
+    Icons.done,
+    Icons.done_all,
+    Icons.done_all,
+  ];
+
+  List<Color> seenStatusColorList = [
+    Colors.grey,
+    Colors.blue.shade300,
+    Colors.grey,
+    Colors.blue.shade300,
+    Colors.blue.shade300,
   ];
 
   @override
@@ -38,6 +57,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
           name: nameList[index],
           mostRecentMessage: messageList[index],
           seenDate: seenDateList[index],
+          seenStatus: seenStatusList[index],
+          seenStatusColor: seenStatusColorList[index],
         );
       },
       itemCount: nameList.length,

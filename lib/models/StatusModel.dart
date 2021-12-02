@@ -10,7 +10,9 @@ class StatusModel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        CircleAvatar(),
+        CircleAvatar(
+          child: Text(name[0]),
+        ),
         Container(
           padding: EdgeInsets.only(left: 8),
           margin: EdgeInsets.all(8),

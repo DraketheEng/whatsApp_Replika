@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:whatsapp_replika/ContactsScreen.dart';
 
 import 'TabBarScreens/tabBar_CameraScreen.dart';
 import 'TabBarScreens/tabBar_ChatsScreen.dart';
@@ -31,6 +32,8 @@ class Iskele extends StatefulWidget {
   _IskeleState createState() => _IskeleState();
 }
 
+Icon customIcon = const Icon(Icons.search);
+
 class _IskeleState extends State<Iskele> {
   static const List<Tab> _tabs = [
     Tab(icon: Icon(Icons.camera_alt)),
@@ -56,14 +59,20 @@ class _IskeleState extends State<Iskele> {
           appBar: AppBar(
             actions: [
               IconButton(
-                icon: Icon(Icons.search),
+                icon: customIcon,
                 onPressed: () {
-                  // özellik eklenecek
+                  setState(() {
+                    if (customIcon.icon == Icons.search) {
+                      customIcon = const Icon(Icons.cancel);
+                    } else {
+                      customIcon = const Icon(Icons.search);
+                    }
+                  });
                 },
               ),
               PopupMenuButton(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(0),
                 ),
                 itemBuilder: (context) {
                   return [
@@ -90,7 +99,8 @@ class _IskeleState extends State<Iskele> {
               Icons.message,
               color: Colors.white,
             ),
-            onPressed: () => print("open chats"),
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => ContactsScreen())),
           )),
     );
   }

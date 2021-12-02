@@ -101,6 +101,8 @@ class StatusModelListUnseen extends StatelessWidget {
           StatusModel(name: "Furkan Aydemir", postDate: "15 minutes ago"),
           StatusModel(
               name: "Özüm Düvenci", postDate: "Today, 6:53 in the evening"),
+          StatusModel(
+              name: "Nazif Göymen", postDate: "Today, 6:45 in the evening")
         ],
       ),
     );
@@ -118,6 +120,8 @@ class StatusModelListSeen extends StatelessWidget {
         children: [
           StatusModel(
               name: "Mehmet Küpeli", postDate: "Today, 3:05 in the afternoon"),
+          StatusModel(
+              name: "Cem İşeri", postDate: "Today, 1:29 in the afternoon")
         ],
       ),
     );
