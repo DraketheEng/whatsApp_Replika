@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "553541060557",
+    "project_id": "whatsappreplika-84480",
+    "storage_bucket": "whatsappreplika-84480.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553541060557:android:4d61c8f625a6f52857a684",
+        "android_client_info": {
+          "package_name": "com.example.whatsapp_replika"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "553541060557-ndgar276gjig6d8a03gnhu8pk3uegno6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.whatsapp_replika",
+            "certificate_hash": "e9cbd99be2ad021ac19f88f9722a7b1b638768a2"
+          }
+        },
+        {
+          "client_id": "553541060557-n6eai2o3ojgvt5e7g5ib1av5v6ham7hs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwt0yQyGp9k6X2OVBmz5FZuaW8JZKllA4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "553541060557-n6eai2o3ojgvt5e7g5ib1av5v6ham7hs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

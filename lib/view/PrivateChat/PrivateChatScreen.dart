@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:whatsapp_replika/view/PrivateChat/PrivateChatContactProfileScreen.dart';
 
 class PrivateChatScreen extends StatefulWidget {
   const PrivateChatScreen({Key? key}) : super(key: key);
@@ -43,7 +44,12 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
           ),
         ),
         title: InkWell(
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => PrivateChatContactProfileScreen()));
+          },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,

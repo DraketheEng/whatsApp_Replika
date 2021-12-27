@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp_replika/PrivateChatScreen.dart';
+import 'package:whatsapp_replika/view/PrivateChat/PrivateChatScreen.dart';
 
 late final Satir satir;
 

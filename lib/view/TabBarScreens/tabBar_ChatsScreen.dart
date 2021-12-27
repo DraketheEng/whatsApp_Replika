@@ -22,7 +22,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
     "Dolar yükselmeye devam eder.",
     "Yarın kahve içelim mi?",
     "Amasya'yı çok seviyorum!",
-    "Mavi rengini hiçbir zaman sevmedim.",
+    "Mavi rengini sevmem.",
   ];
 
   List<String> seenDateList = [

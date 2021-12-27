@@ -1,16 +1,27 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:whatsapp_replika/ContactsScreen.dart';
+import 'package:whatsapp_replika/view/ContactsScreen.dart';
+import 'package:whatsapp_replika/view/TabBarScreens/tabBar_CameraScreen.dart';
+import 'package:whatsapp_replika/view/TabBarScreens/tabBar_ChatsScreen.dart';
+import 'package:whatsapp_replika/view/TabBarScreens/tabBar_StatusScreen.dart';
+import 'package:whatsapp_replika/view/TabBarScreens/tabBart_CallsScreen.dart';
+import 'package:whatsapp_replika/view/signUp_and_LoginScreens/loginScreen.dart';
 
-import 'TabBarScreens/tabBar_CameraScreen.dart';
-import 'TabBarScreens/tabBar_ChatsScreen.dart';
-import 'TabBarScreens/tabBar_StatusScreen.dart';
-import 'TabBarScreens/tabBart_CallsScreen.dart';
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}
 
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -19,7 +30,7 @@ class MyApp extends StatelessWidget {
         primaryColor: new Color(0xff075E54),
         accentColor: new Color(0xff25D366),
       ),
-      home: Iskele(),
+      home: LoginScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -63,13 +74,34 @@ class _IskeleState extends State<Iskele> {
                 onPressed: () {
                   setState(() {
                     if (customIcon.icon == Icons.search) {
-                      customIcon = const Icon(Icons.cancel);
+                      customIcon = const Icon(Icons.close);
+                      _appBarTitle = new TextField(
+                        controller: _filter,
+                        decoration: new InputDecoration(
+                          fillColor: Colors.white,
+                          filled: true,
+                          prefixIcon: new Icon(Icons.search),
+                          hintText: 'Search...',
+                        ),
+                      );
                     } else {
                       customIcon = const Icon(Icons.search);
+                      _appBarTitle = new Text('WhatsApp Replika');
+                      _filter.clear();
                     }
                   });
                 },
               ),
+              IconButton(
+                  onPressed: () async {
+                    await _signOut().then((value) {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginScreen()),
+                          (Route<dynamic> route) => false);
+                    });
+                  },
+                  icon: Icon(Icons.exit_to_app)),
               PopupMenuButton(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(0),
@@ -85,7 +117,7 @@ class _IskeleState extends State<Iskele> {
                 },
               ),
             ],
-            title: Text("WhatsApp Replika"),
+            title: _appBarTitle,
             bottom: TabBar(
               tabs: _tabs,
             ),
@@ -104,4 +136,12 @@ class _IskeleState extends State<Iskele> {
           )),
     );
   }
+}
+
+Widget _appBarTitle = new Text('WhatsApp Replika');
+
+final TextEditingController _filter = new TextEditingController();
+
+_signOut() async {
+  await FirebaseAuth.instance.signOut();
 }
