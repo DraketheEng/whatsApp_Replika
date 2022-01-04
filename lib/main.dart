@@ -75,13 +75,25 @@ class _IskeleState extends State<Iskele> {
                   setState(() {
                     if (customIcon.icon == Icons.search) {
                       customIcon = const Icon(Icons.close);
-                      _appBarTitle = new TextField(
-                        controller: _filter,
-                        decoration: new InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          prefixIcon: new Icon(Icons.search),
-                          hintText: 'Search...',
+                      _appBarTitle = Container(
+                        height: 35,
+                        child: new TextField(
+                          controller: _filter,
+                          decoration: new InputDecoration(
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xff25D366)),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xff25D366)),
+                            ),
+                            fillColor: Colors.white,
+                            filled: true,
+                            prefixIcon: new Icon(
+                              Icons.search,
+                              color: Color(0xff25D366),
+                            ),
+                            hintText: 'Search...',
+                          ),
                         ),
                       );
                     } else {

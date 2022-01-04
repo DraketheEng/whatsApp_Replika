@@ -89,8 +89,12 @@ class ContactProfileScreenSecondContainer extends StatelessWidget {
                 "Media, links, and docs",
               ),
               Spacer(),
-              Text("100"),
-              InkWell(onTap: () {}, child: Icon(Icons.keyboard_arrow_right))
+              InkWell(
+                onTap: () {},
+                child: Row(
+                  children: [Text("100"), Icon(Icons.keyboard_arrow_right)],
+                ),
+              ),
             ],
           ),
           SizedBox(

@@ -22,10 +22,7 @@ class Satir extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (_) => PrivateChatScreen()));
-      },
+      onTap: () {},
       child: Row(
         children: [
           CircleAvatar(

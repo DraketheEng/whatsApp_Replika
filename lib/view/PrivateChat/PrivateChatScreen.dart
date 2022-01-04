@@ -1,27 +1,63 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:whatsapp_replika/view/PrivateChat/PrivateChatContactProfileScreen.dart';
 
 class PrivateChatScreen extends StatefulWidget {
-  const PrivateChatScreen({Key? key}) : super(key: key);
+  final QueryDocumentSnapshot document;
+
+  const PrivateChatScreen({Key? key, required this.document}) : super(key: key);
 
   @override
-  _PrivateChatScreenState createState() => _PrivateChatScreenState();
+  _PrivateChatScreenState createState() =>
+      _PrivateChatScreenState(this.document);
 }
 
 class _PrivateChatScreenState extends State<PrivateChatScreen> {
-  TextEditingController t1 = TextEditingController();
-  List<MesajBalonu> mesajListesi = [];
+  _PrivateChatScreenState(QueryDocumentSnapshot doc) {
+    this.document = doc;
+  }
 
-  listeyeEkle(String gonderilenMesaj) {
-    setState(() {
-      MesajBalonu mesajlar = MesajBalonu(mesaj: gonderilenMesaj);
-      mesajListesi.insert(0, mesajlar);
-      t1.clear();
-    });
+  TextEditingController t1 = TextEditingController();
+
+  late QueryDocumentSnapshot document;
+
+  addMessage(String text) {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
+    FirebaseFirestore.instance
+        .collection("messages")
+        .doc(currentUser?.uid)
+        .collection(document.id)
+        .doc()
+        .set(({
+          "senderId": currentUser!.uid,
+          "receiverId": document.id,
+          "messageText": text,
+          "time": DateTime.now().millisecondsSinceEpoch
+        }));
+
+    FirebaseFirestore.instance
+        .collection("messages")
+        .doc(document.id)
+        .collection(currentUser.uid)
+        .doc()
+        .set(({
+          "senderId": currentUser.uid,
+          "receiverId": document.id,
+          "messageText": text,
+          "time": DateTime.now().millisecondsSinceEpoch
+        }));
+    t1.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    final db = FirebaseFirestore.instance;
+
+    User? currentUser = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.blueGrey,
       appBar: AppBar(
@@ -38,7 +74,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                 width: 5,
               ),
               CircleAvatar(
-                child: Text("N"),
+                child: Text(this.document['username'][0]),
               ),
             ],
           ),
@@ -55,7 +91,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Nazif Göymen",
+                this.document['username'],
                 style: TextStyle(fontSize: 18),
               ),
               Text(
@@ -86,83 +122,108 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
         child: Column(
           children: [
             Flexible(
-              child: ListView.builder(
-                itemBuilder: (_, int index) {
-                  return mesajListesi[index];
+              child: StreamBuilder<QuerySnapshot>(
+                stream: db
+                    .collection('messages')
+                    .doc(currentUser!.uid)
+                    .collection(this.document.id)
+                    .orderBy('time', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else
+                    return new ListView.builder(
+                        shrinkWrap: false,
+                        reverse: true,
+                        scrollDirection: Axis.vertical,
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context, index) {
+                          var doc = snapshot.data!.docs[index];
+
+                          return InkWell(
+                            child: MesajBalonu(
+                              mesaj: doc['messageText'],
+                              time: doc['time'],
+                            ),
+                          );
+                        });
                 },
-                itemCount: mesajListesi.length,
-                reverse: true,
               ),
             ),
-            Container(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Row(
-                  children: [
-                    Container(
-                      width: MediaQuery.of(context).size.width - 55,
-                      child: Card(
-                        margin: EdgeInsets.only(bottom: 8, left: 2, right: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: TextFormField(
-                          controller: t1,
-                          onFieldSubmitted: listeyeEkle,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 5,
-                          minLines: 1,
-                          textAlignVertical: TextAlignVertical.center,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Type a message",
-                            prefixIcon: IconButton(
-                              icon: Icon(
-                                Icons.emoji_emotions,
-                                color: Color(0xff075E54),
+            Padding(
+              padding: const EdgeInsets.only(left: 5.0, right: 2),
+              child: Container(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width - 55,
+                        child: Card(
+                          margin: EdgeInsets.only(bottom: 8, left: 2, right: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: TextFormField(
+                            controller: t1,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: 5,
+                            minLines: 1,
+                            textAlignVertical: TextAlignVertical.center,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: "Type a message",
+                              prefixIcon: IconButton(
+                                icon: Icon(
+                                  Icons.emoji_emotions,
+                                  color: Color(0xff075E54),
+                                ),
+                                onPressed: () {},
                               ),
-                              onPressed: () {},
+                              suffixIcon: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      addMessage(t1.text);
+                                    },
+                                    icon: Icon(Icons.send,
+                                        color: Color(0xff075E54)),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                          context: context,
+                                          builder: (builder) {
+                                            return bottomSheet();
+                                          });
+                                    },
+                                    icon: Icon(Icons.attach_file,
+                                        color: Color(0xff075E54)),
+                                  ),
+                                ],
+                              ),
+                              contentPadding: EdgeInsets.all(5),
                             ),
-                            suffixIcon: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    return listeyeEkle(t1.text);
-                                  },
-                                  icon: Icon(Icons.send,
-                                      color: Color(0xff075E54)),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                        context: context,
-                                        builder: (builder) {
-                                          return bottomSheet();
-                                        });
-                                  },
-                                  icon: Icon(Icons.attach_file,
-                                      color: Color(0xff075E54)),
-                                ),
-                              ],
-                            ),
-                            contentPadding: EdgeInsets.all(5),
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(bottom: 8, left: 2, right: 2),
-                      child: CircleAvatar(
-                        backgroundColor: Color(0xff25D366),
-                        child: Icon(
-                          Icons.mic,
-                          color: Colors.white,
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: 8, left: 2, right: 2),
+                        child: CircleAvatar(
+                          backgroundColor: Color(0xff25D366),
+                          child: Icon(
+                            Icons.mic,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -175,11 +236,15 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
 
 class MesajBalonu extends StatelessWidget {
   var mesaj;
+  var time;
 
-  MesajBalonu({required this.mesaj});
+  MesajBalonu({required this.mesaj, this.time});
 
   @override
   Widget build(BuildContext context) {
+    var date = new DateTime.fromMicrosecondsSinceEpoch(this.time * 1000);
+    String formattedDate = DateFormat('HH:mm').format(date);
+
     return Container(
       width: MediaQuery.of(context).size.width - 100,
       margin: EdgeInsets.all(5),
@@ -189,37 +254,34 @@ class MesajBalonu extends StatelessWidget {
           decoration: ShapeDecoration(
               color: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25))),
+                  borderRadius: BorderRadius.circular(10))),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
+            child: Expanded(
+              child: Column(children: [
+                Container(
+                    alignment: Alignment.centerLeft,
                     padding: EdgeInsets.only(left: 10),
                     margin: EdgeInsets.all(5),
-                    child: Text(
-                      mesaj,
-                    ),
-                  ),
-                ),
+                    child: Text(mesaj, style: TextStyle(fontSize: 15))),
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text("13:15"),
+                      Text(formattedDate.toString(),
+                          style: TextStyle(fontSize: 12)),
                       SizedBox(
                         width: 5,
                       ),
-                      Icon(
-                        Icons.done_all,
-                        color: Colors.blue.shade300,
-                      ),
+                      //  Icon(
+                      //    Icons.done_all,
+                      //    color: Colors.blue.shade300,
+                      //   ),
                     ],
                   ),
                 )
-              ],
+              ]),
             ),
           ),
         ),

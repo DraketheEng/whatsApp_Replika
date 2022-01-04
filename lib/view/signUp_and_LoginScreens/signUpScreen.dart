@@ -26,9 +26,8 @@ class _SignUpState extends State<SignUp> {
           .collection("Users")
           .doc(emailController.text)
           .set({
-        "User Name": userNameController.text,
-        "User Email": emailController.text,
-        "User Password": passwordController.text
+        "username": userNameController.text,
+        "email": emailController.text
       }).whenComplete(() => Navigator.push(
               context, MaterialPageRoute(builder: (_) => LoginScreen())));
     });
