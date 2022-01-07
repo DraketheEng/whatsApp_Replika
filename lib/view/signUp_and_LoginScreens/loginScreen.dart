@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
         .then((user) {
       Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => Iskele()),
+          MaterialPageRoute(builder: (_) => HomeScreen()),
           (Route<dynamic> route) => false);
     });
   }
@@ -185,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         await signInWithGoogle().then((user) {
                           Navigator.pushAndRemoveUntil(
                               context,
-                              MaterialPageRoute(builder: (_) => Iskele()),
+                              MaterialPageRoute(builder: (_) => HomeScreen()),
                               (Route<dynamic> route) => false);
                         });
                       },

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:whatsapp_replika/view/ContactsScreen.dart';
 import 'package:whatsapp_replika/view/TabBarScreens/tabBar_CameraScreen.dart';
 import 'package:whatsapp_replika/view/TabBarScreens/tabBar_ChatsScreen.dart';
@@ -36,16 +37,16 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class Iskele extends StatefulWidget {
-  const Iskele({Key? key}) : super(key: key);
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  _IskeleState createState() => _IskeleState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 Icon customIcon = const Icon(Icons.search);
 
-class _IskeleState extends State<Iskele> {
+class _HomeScreenState extends State<HomeScreen> {
   static const List<Tab> _tabs = [
     Tab(icon: Icon(Icons.camera_alt)),
     Tab(text: "Chats"),
@@ -155,5 +156,6 @@ Widget _appBarTitle = new Text('WhatsApp Replika');
 final TextEditingController _filter = new TextEditingController();
 
 _signOut() async {
+  await GoogleSignIn().disconnect();
   await FirebaseAuth.instance.signOut();
 }

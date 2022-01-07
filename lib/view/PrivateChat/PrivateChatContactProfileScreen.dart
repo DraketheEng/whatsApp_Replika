@@ -1,25 +1,36 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'ContactProfileScreenModels.dart';
 
 class PrivateChatContactProfileScreen extends StatefulWidget {
-  const PrivateChatContactProfileScreen({Key? key}) : super(key: key);
+  final QueryDocumentSnapshot document;
+  const PrivateChatContactProfileScreen({Key? key, required this.document})
+      : super(key: key);
 
   @override
   _PrivateChatContactProfileScreenState createState() =>
-      _PrivateChatContactProfileScreenState();
+      _PrivateChatContactProfileScreenState(this.document);
 }
 
 class _PrivateChatContactProfileScreenState
     extends State<PrivateChatContactProfileScreen> {
+  _PrivateChatContactProfileScreenState(QueryDocumentSnapshot doc) {
+    this.document = doc;
+  }
+
+  late QueryDocumentSnapshot document;
+
   @override
+  final db = FirebaseFirestore.instance;
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       body: SafeArea(
         child: ListView(
           children: [
-            ContactProfileScreenFirstContainer(), //Bu container profil resmi içindir.
+            ContactProfileScreenFirstContainer(
+                document: this.document), //Bu container profil resmi içindir.
             ContactProfileScreenSecondContainer(), //Bu container media bağlantı ve belgeleri içerir
             ContactProfileScreenThirdContainer(), //Bu container bildirimler için seçenekler içerir
             ContactProfileScreenFourthContainer(), //Bu container kaybolan mesaj ve şifreleme içerir

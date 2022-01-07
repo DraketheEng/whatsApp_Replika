@@ -84,7 +84,9 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => PrivateChatContactProfileScreen()));
+                    builder: (_) => PrivateChatContactProfileScreen(
+                          document: this.document,
+                        )));
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -144,8 +146,8 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                           var doc = snapshot.data!.docs[index];
 
                           return InkWell(
-                            child: MesajBalonu(
-                              mesaj: doc['messageText'],
+                            child: MessageBalloon(
+                              message: doc['messageText'],
                               time: doc['time'],
                             ),
                           );
@@ -234,17 +236,23 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
   }
 }
 
-class MesajBalonu extends StatelessWidget {
-  var mesaj;
+class MessageBalloon extends StatelessWidget {
+  var message;
   var time;
 
-  MesajBalonu({required this.mesaj, this.time});
+  MessageBalloon({required this.message, this.time});
 
   @override
   Widget build(BuildContext context) {
+    var dateNow = new DateTime.now();
     var date = new DateTime.fromMicrosecondsSinceEpoch(this.time * 1000);
-    String formattedDate = DateFormat('HH:mm').format(date);
-
+    String formattedDate = DateFormat('dd/M/yyyy – HH:mm').format(date);
+    final difference = dateNow.difference(date).inDays;
+    if (difference < 1) {
+      formattedDate = DateFormat("'Today' - HH:mm").format(date);
+    } else if (difference < 2) {
+      formattedDate = DateFormat("'Yesterday' - HH:mm").format(date);
+    }
     return Container(
       width: MediaQuery.of(context).size.width - 100,
       margin: EdgeInsets.all(5),
@@ -263,7 +271,7 @@ class MesajBalonu extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     padding: EdgeInsets.only(left: 10),
                     margin: EdgeInsets.all(5),
-                    child: Text(mesaj, style: TextStyle(fontSize: 15))),
+                    child: Text(message, style: TextStyle(fontSize: 15))),
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Row(

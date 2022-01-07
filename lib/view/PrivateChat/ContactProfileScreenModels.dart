@@ -1,7 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class ContactProfileScreenFirstContainer extends StatelessWidget {
-  const ContactProfileScreenFirstContainer({Key? key}) : super(key: key);
+class ContactProfileScreenFirstContainer extends StatefulWidget {
+  final QueryDocumentSnapshot document;
+  const ContactProfileScreenFirstContainer({Key? key, required this.document})
+      : super(key: key);
+
+  @override
+  _ContactProfileScreenFirstContainerState createState() =>
+      _ContactProfileScreenFirstContainerState(this.document);
+}
+
+class _ContactProfileScreenFirstContainerState
+    extends State<ContactProfileScreenFirstContainer> {
+  _ContactProfileScreenFirstContainerState(QueryDocumentSnapshot doc) {
+    this.document = doc;
+  }
+  late QueryDocumentSnapshot document;
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +30,7 @@ class ContactProfileScreenFirstContainer extends StatelessWidget {
               backgroundColor: Color(0xff075E54),
               radius: 100,
               child: Text(
-                "N",
+                (this.document['username'][0]),
                 style: TextStyle(fontSize: 40, color: Colors.white),
               ),
             ),
@@ -46,7 +61,7 @@ class ContactProfileScreenFirstContainer extends StatelessWidget {
               alignment: Alignment.bottomLeft,
               padding: EdgeInsets.all(15),
               child: Text(
-                "Nazif Göymen",
+                (this.document['username']),
                 style: TextStyle(fontSize: 30, color: Colors.white),
               ),
             ),
