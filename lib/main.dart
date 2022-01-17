@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Tab(text: "Calls"),
   ];
 
-  static const List<Widget> _pages = <Widget>[
+  static List<Widget> _pages = <Widget>[
     CameraScreen(),
     ChatsScreen(),
     StatusScreen(),
@@ -156,6 +156,6 @@ Widget _appBarTitle = new Text('WhatsApp Replika');
 final TextEditingController _filter = new TextEditingController();
 
 _signOut() async {
-  await GoogleSignIn().disconnect();
+  GoogleSignIn().disconnect();
   await FirebaseAuth.instance.signOut();
 }

@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp_replika/models/ChatModel.dart';
+import 'package:whatsapp_replika/view/PrivateChat/PrivateChatScreen.dart';
 
 class ChatsScreen extends StatefulWidget {
   const ChatsScreen({Key? key}) : super(key: key);
@@ -9,60 +12,47 @@ class ChatsScreen extends StatefulWidget {
 }
 
 class _ChatsScreenState extends State<ChatsScreen> {
-  List<String> nameList = [
-    "Nazif Göymen",
-    "Cem İşeri",
-    "Onur Şimşek",
-    "İbrahim Uğurlu",
-    "Özüm Düvenci"
-  ];
+  List<ChatLine> chatInfos = new List.empty();
 
-  List<String> messageList = [
-    "Merhaba, nasılsın?",
-    "Dolar yükselmeye devam eder.",
-    "Yarın kahve içelim mi?",
-    "Amasya'yı çok seviyorum!",
-    "Mavi rengini sevmem.",
-  ];
-
-  List<String> seenDateList = [
-    "13:15",
-    "09:55",
-    "Yesterday",
-    "Yesterday",
-    "25.11.2021",
-  ];
-
-  List<IconData> seenStatusList = [
-    Icons.done,
-    Icons.done_all,
-    Icons.done,
-    Icons.done_all,
-    Icons.done_all,
-  ];
-
-  List<Color> seenStatusColorList = [
-    Colors.grey,
-    Colors.blue.shade300,
-    Colors.grey,
-    Colors.blue.shade300,
-    Colors.blue.shade300,
-  ];
+  final db = FirebaseFirestore.instance;
+  User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemBuilder: (context, index) {
-        return Satir(
-          name: nameList[index],
-          mostRecentMessage: messageList[index],
-          seenDate: seenDateList[index],
-          seenStatus: seenStatusList[index],
-          seenStatusColor: seenStatusColorList[index],
-        );
-      },
-      itemCount: nameList.length,
-      padding: EdgeInsets.all(8),
+    return Flexible(
+      child: StreamBuilder<QuerySnapshot>(
+        stream:
+            db.collection('Users').snapshots(), //to do fix it with currentUser.
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else
+            return new ListView.builder(
+                scrollDirection: Axis.vertical,
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  var doc = snapshot.data!.docs[index];
+
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => PrivateChatScreen(
+                                    document: doc,
+                                  )));
+                    },
+                    child: ChatLine(
+                      contactName: doc['username'],
+                      mostRecentMessage: 'Tap to chat',
+                      seenDate: '',
+                    ),
+                  );
+                });
+        },
+      ),
     );
   }
 }

@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:whatsapp_replika/view/PrivateChat/PrivateChatContactProfileScreen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class PrivateChatScreen extends StatefulWidget {
   final QueryDocumentSnapshot document;
@@ -55,7 +60,6 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
   @override
   Widget build(BuildContext context) {
     final db = FirebaseFirestore.instance;
-
     User? currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
@@ -149,6 +153,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                             child: MessageBalloon(
                               message: doc['messageText'],
                               time: doc['time'],
+                              document: doc,
                             ),
                           );
                         });
@@ -179,34 +184,22 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                               border: InputBorder.none,
                               hintText: "Type a message",
                               prefixIcon: IconButton(
-                                icon: Icon(
-                                  Icons.emoji_emotions,
-                                  color: Color(0xff075E54),
-                                ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                      context: context,
+                                      builder: (builder) {
+                                        return BottomClass();
+                                      });
+                                },
+                                icon: Icon(Icons.attach_file,
+                                    color: Color(0xff075E54)),
                               ),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      addMessage(t1.text);
-                                    },
-                                    icon: Icon(Icons.send,
-                                        color: Color(0xff075E54)),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                          context: context,
-                                          builder: (builder) {
-                                            return bottomSheet();
-                                          });
-                                    },
-                                    icon: Icon(Icons.attach_file,
-                                        color: Color(0xff075E54)),
-                                  ),
-                                ],
+                              suffixIcon: IconButton(
+                                onPressed: () {
+                                  addMessage(t1.text);
+                                },
+                                icon:
+                                    Icon(Icons.send, color: Color(0xff075E54)),
                               ),
                               contentPadding: EdgeInsets.all(5),
                             ),
@@ -218,9 +211,10 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                             const EdgeInsets.only(bottom: 8, left: 2, right: 2),
                         child: CircleAvatar(
                           backgroundColor: Color(0xff25D366),
-                          child: Icon(
-                            Icons.mic,
+                          child: IconButton(
+                            icon: Icon(Icons.mic),
                             color: Colors.white,
+                            onPressed: () {},
                           ),
                         ),
                       ),
@@ -236,16 +230,24 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
   }
 }
 
-class MessageBalloon extends StatelessWidget {
+class MessageBalloon extends StatefulWidget {
+  final QueryDocumentSnapshot document;
   var message;
   var time;
 
-  MessageBalloon({required this.message, this.time});
+  MessageBalloon({required this.message, this.time, required this.document});
+
+  @override
+  _MessageBalloonState createState() => _MessageBalloonState();
+}
+
+class _MessageBalloonState extends State<MessageBalloon> {
+  User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
     var dateNow = new DateTime.now();
-    var date = new DateTime.fromMicrosecondsSinceEpoch(this.time * 1000);
+    var date = new DateTime.fromMicrosecondsSinceEpoch(this.widget.time * 1000);
     String formattedDate = DateFormat('dd/M/yyyy – HH:mm').format(date);
     final difference = dateNow.difference(date).inDays;
     if (difference < 1) {
@@ -253,14 +255,22 @@ class MessageBalloon extends StatelessWidget {
     } else if (difference < 2) {
       formattedDate = DateFormat("'Yesterday' - HH:mm").format(date);
     }
+    var ballonColor = Colors.white;
+    var ballonAlignment = Alignment.centerLeft;
+    if (currentUser!.uid == widget.document['senderId']) {
+      ballonColor = Colors.deepPurple.shade200;
+      ballonAlignment = Alignment.centerRight;
+    }
+
     return Container(
-      width: MediaQuery.of(context).size.width - 100,
+      alignment: ballonAlignment,
       margin: EdgeInsets.all(5),
       child: Padding(
-        padding: const EdgeInsets.only(left: 3, right: 100),
+        padding: const EdgeInsets.only(left: 3, right: 3),
         child: Container(
+          width: 200,
           decoration: ShapeDecoration(
-              color: Colors.white,
+              color: ballonColor,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10))),
           child: Padding(
@@ -271,7 +281,8 @@ class MessageBalloon extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     padding: EdgeInsets.only(left: 10),
                     margin: EdgeInsets.all(5),
-                    child: Text(message, style: TextStyle(fontSize: 15))),
+                    child:
+                        Text(widget.message, style: TextStyle(fontSize: 15))),
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Row(
@@ -298,60 +309,112 @@ class MessageBalloon extends StatelessWidget {
   }
 }
 
-Widget bottomSheet() {
-  return Container(
-    height: 275,
-    child: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 15.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              BottomSheetItems(
-                bottomSheetItemIcon: Icons.insert_drive_file_sharp,
-                bottomSheetItemText: "Document",
-                bottomSheetItemColor: Colors.indigo,
-              ),
-              BottomSheetItems(
-                bottomSheetItemIcon: Icons.camera_alt,
-                bottomSheetItemText: "Camera",
-                bottomSheetItemColor: Colors.pink,
-              ),
-              BottomSheetItems(
-                bottomSheetItemIcon: Icons.insert_photo,
-                bottomSheetItemText: "Gallery",
-                bottomSheetItemColor: Colors.purple,
-              )
-            ],
+class BottomClass extends StatefulWidget {
+  const BottomClass({Key? key}) : super(key: key);
+
+  @override
+  _BottomClassState createState() => _BottomClassState();
+}
+
+class _BottomClassState extends State<BottomClass> {
+  late File _image;
+
+  Future getGalleryImage() async {
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    final imageTemporary = File(image.path);
+    setState(() => this._image = imageTemporary);
+  }
+
+  Future getCameraImage() async {
+    final image = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (image == null) return;
+    final imageTemporary = File(image.path);
+    setState(() => this._image = imageTemporary);
+  }
+
+  Widget bottomSheet() {
+    return Container(
+      height: 275,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 15.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                InkWell(
+                  onTap: () {},
+                  child: BottomSheetItems(
+                    bottomSheetItemIcon: Icons.insert_drive_file_sharp,
+                    bottomSheetItemText: "Document",
+                    bottomSheetItemColor: Colors.indigo,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    getCameraImage();
+                  },
+                  child: BottomSheetItems(
+                    bottomSheetItemIcon: Icons.camera_alt,
+                    bottomSheetItemText: "Camera",
+                    bottomSheetItemColor: Colors.pink,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    getGalleryImage();
+                  },
+                  child: BottomSheetItems(
+                    bottomSheetItemIcon: Icons.insert_photo,
+                    bottomSheetItemText: "Gallery",
+                    bottomSheetItemColor: Colors.purple,
+                  ),
+                )
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 15.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              BottomSheetItems(
-                bottomSheetItemIcon: Icons.headset,
-                bottomSheetItemText: "Audio",
-                bottomSheetItemColor: Colors.orange,
-              ),
-              BottomSheetItems(
-                bottomSheetItemIcon: Icons.location_pin,
-                bottomSheetItemText: "Location",
-                bottomSheetItemColor: Colors.pink,
-              ),
-              BottomSheetItems(
-                bottomSheetItemIcon: Icons.person,
-                bottomSheetItemText: "Contact",
-                bottomSheetItemColor: Colors.blue,
-              )
-            ],
+          Padding(
+            padding: const EdgeInsets.only(top: 15.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                InkWell(
+                  onTap: () {},
+                  child: BottomSheetItems(
+                    bottomSheetItemIcon: Icons.headset,
+                    bottomSheetItemText: "Audio",
+                    bottomSheetItemColor: Colors.orange,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {},
+                  child: BottomSheetItems(
+                    bottomSheetItemIcon: Icons.location_pin,
+                    bottomSheetItemText: "Location",
+                    bottomSheetItemColor: Colors.pink,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {},
+                  child: BottomSheetItems(
+                    bottomSheetItemIcon: Icons.person,
+                    bottomSheetItemText: "Contact",
+                    bottomSheetItemColor: Colors.blue,
+                  ),
+                )
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return bottomSheet();
+  }
 }
 
 class BottomSheetItems extends StatelessWidget {
@@ -368,20 +431,17 @@ class BottomSheetItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {},
-      child: Container(
-        margin: EdgeInsets.all(18),
-        child: Column(
-          children: [
-            CircleAvatar(
-              backgroundColor: bottomSheetItemColor,
-              radius: 30,
-              child: Icon(bottomSheetItemIcon),
-            ),
-            Text(bottomSheetItemText)
-          ],
-        ),
+    return Container(
+      margin: EdgeInsets.all(18),
+      child: Column(
+        children: [
+          CircleAvatar(
+            backgroundColor: bottomSheetItemColor,
+            radius: 30,
+            child: Icon(bottomSheetItemIcon),
+          ),
+          Text(bottomSheetItemText)
+        ],
       ),
     );
   }
