@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:whatsapp_replika/view/PrivateChat/PrivateChatContactProfileScreen.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class PrivateChatScreen extends StatefulWidget {
@@ -39,6 +38,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
         .set(({
           "senderId": currentUser!.uid,
           "receiverId": document.id,
+          "imageURL": "",
           "messageText": text,
           "time": DateTime.now().millisecondsSinceEpoch
         }));
@@ -51,6 +51,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
         .set(({
           "senderId": currentUser.uid,
           "receiverId": document.id,
+          "imageURL": "",
           "messageText": text,
           "time": DateTime.now().millisecondsSinceEpoch
         }));
@@ -59,7 +60,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final db = FirebaseFirestore.instance;
+    FirebaseFirestore db = FirebaseFirestore.instance;
     User? currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
@@ -188,7 +189,9 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                                   showModalBottomSheet(
                                       context: context,
                                       builder: (builder) {
-                                        return BottomClass();
+                                        return BottomClass(
+                                          document: document,
+                                        );
                                       });
                                 },
                                 icon: Icon(Icons.attach_file,
@@ -281,8 +284,10 @@ class _MessageBalloonState extends State<MessageBalloon> {
                     alignment: Alignment.centerLeft,
                     padding: EdgeInsets.only(left: 10),
                     margin: EdgeInsets.all(5),
-                    child:
-                        Text(widget.message, style: TextStyle(fontSize: 15))),
+                    child: (widget.document["imageURL"] == null ||
+                            widget.document["imageURL"] == "")
+                        ? Text(widget.message, style: TextStyle(fontSize: 15))
+                        : Image.network(widget.document["imageURL"])),
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: Row(
@@ -310,27 +315,100 @@ class _MessageBalloonState extends State<MessageBalloon> {
 }
 
 class BottomClass extends StatefulWidget {
-  const BottomClass({Key? key}) : super(key: key);
+  final QueryDocumentSnapshot document;
+  const BottomClass({Key? key, required this.document}) : super(key: key);
 
   @override
-  _BottomClassState createState() => _BottomClassState();
+  _BottomClassState createState() => _BottomClassState(this.document);
 }
 
 class _BottomClassState extends State<BottomClass> {
-  late File _image;
-
-  Future getGalleryImage() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image == null) return;
-    final imageTemporary = File(image.path);
-    setState(() => this._image = imageTemporary);
+  _BottomClassState(QueryDocumentSnapshot doc) {
+    this.document = doc;
   }
 
-  Future getCameraImage() async {
+  User? currentUser = FirebaseAuth.instance.currentUser;
+  late File _image;
+  late QueryDocumentSnapshot document;
+
+  final _storage = FirebaseStorage.instance;
+
+  Future getImagefromGallery() async {
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    var file = File(image!.path);
+    if (image != null) {
+      var snapshot = await _storage
+          .ref()
+          .child("${currentUser!.uid}/${image.name}")
+          .putFile(file);
+      var downloadUrl = await snapshot.ref.getDownloadURL();
+      FirebaseFirestore.instance
+          .collection("messages")
+          .doc(currentUser?.uid)
+          .collection(document.id)
+          .doc()
+          .set(({
+            "senderId": currentUser!.uid,
+            "receiverId": document.id,
+            "imageURL": downloadUrl,
+            "messageText": "",
+            "time": DateTime.now().millisecondsSinceEpoch
+          }));
+      FirebaseFirestore.instance
+          .collection("messages")
+          .doc(document.id)
+          .collection(currentUser!.uid)
+          .doc()
+          .set(({
+            "senderId": currentUser!.uid,
+            "receiverId": document.id,
+            "imageURL": downloadUrl,
+            "messageText": "",
+            "time": DateTime.now().millisecondsSinceEpoch
+          }));
+    } else {
+      print("No path recieved.");
+    }
+    setState(() => this._image = file);
+  }
+
+  Future getImagefromCamera() async {
     final image = await ImagePicker().pickImage(source: ImageSource.camera);
-    if (image == null) return;
-    final imageTemporary = File(image.path);
-    setState(() => this._image = imageTemporary);
+    var file = File(image!.path);
+    if (image != null) {
+      var snapshot = await _storage
+          .ref()
+          .child("${currentUser!.uid}/${image.name}")
+          .putFile(file);
+      var downloadUrl = await snapshot.ref.getDownloadURL();
+      FirebaseFirestore.instance
+          .collection("messages")
+          .doc(currentUser?.uid)
+          .collection(document.id)
+          .doc()
+          .set(({
+            "senderId": currentUser!.uid,
+            "receiverId": document.id,
+            "imageURL": downloadUrl,
+            "messageText": "",
+            "time": DateTime.now().millisecondsSinceEpoch
+          }));
+      FirebaseFirestore.instance
+          .collection("messages")
+          .doc(document.id)
+          .collection(currentUser!.uid)
+          .doc()
+          .set(({
+            "senderId": currentUser!.uid,
+            "receiverId": document.id,
+            "imageURL": downloadUrl,
+            "messageText": "",
+            "time": DateTime.now().millisecondsSinceEpoch
+          }));
+    } else {
+      print("No path recieved.");
+    }
+    setState(() => this._image = file);
   }
 
   Widget bottomSheet() {
@@ -353,7 +431,7 @@ class _BottomClassState extends State<BottomClass> {
                 ),
                 InkWell(
                   onTap: () {
-                    getCameraImage();
+                    getImagefromCamera();
                   },
                   child: BottomSheetItems(
                     bottomSheetItemIcon: Icons.camera_alt,
@@ -363,7 +441,7 @@ class _BottomClassState extends State<BottomClass> {
                 ),
                 InkWell(
                   onTap: () {
-                    getGalleryImage();
+                    getImagefromGallery();
                   },
                   child: BottomSheetItems(
                     bottomSheetItemIcon: Icons.insert_photo,

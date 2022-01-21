@@ -16,6 +16,13 @@ class _SignUpState extends State<SignUp> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   var snackBar = SnackBar(content: Text('Registered successfully'));
+  bool _isObscure = true;
+
+  showPassword() {
+    setState(() {
+      _isObscure = !_isObscure;
+    });
+  }
 
   Future<void> signUpButton() async {
     await FirebaseAuth.instance
@@ -59,7 +66,8 @@ class _SignUpState extends State<SignUp> {
                       border: OutlineInputBorder(),
                       labelText: 'Your Full Name',
                       labelStyle: TextStyle(color: Colors.black),
-                      suffixIcon: Icon(Icons.person, color: Color(0xff075E54))),
+                      suffixIcon:
+                          Icon(Icons.person_outline, color: Color(0xff075E54))),
                 ),
               ),
               Container(
@@ -74,13 +82,14 @@ class _SignUpState extends State<SignUp> {
                       border: OutlineInputBorder(),
                       labelText: 'E-mail Adress',
                       labelStyle: TextStyle(color: Colors.black),
-                      suffixIcon: Icon(Icons.mail, color: Color(0xff075E54))),
+                      suffixIcon:
+                          Icon(Icons.mail_outline, color: Color(0xff075E54))),
                 ),
               ),
               Container(
                 padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
                 child: TextField(
-                  obscureText: true,
+                  obscureText: _isObscure,
                   controller: passwordController,
                   decoration: InputDecoration(
                       focusedBorder: UnderlineInputBorder(
@@ -90,7 +99,15 @@ class _SignUpState extends State<SignUp> {
                       border: OutlineInputBorder(),
                       labelText: 'Password',
                       labelStyle: TextStyle(color: Colors.black),
-                      suffixIcon: Icon(Icons.lock, color: Color(0xff075E54))),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isObscure ? Icons.lock_outline : Icons.lock_open,
+                          color: Color(0xff075E54),
+                        ),
+                        onPressed: () {
+                          showPassword();
+                        },
+                      )),
                 ),
               ),
               SizedBox(height: 20),
