@@ -16,6 +16,18 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   final db = FirebaseFirestore.instance;
   User? currentUser = FirebaseAuth.instance.currentUser;
+  fetchData() {
+    FirebaseFirestore.instance
+        .collection("messages")
+        .doc(currentUser!.uid)
+        .get()
+        .then((data) {
+      if (data.exists) {
+      } else {
+        return Center(child: Text("Welcome ${currentUser!.uid}"));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -28,12 +28,15 @@ class _SignUpState extends State<SignUp> {
     await FirebaseAuth.instance
         .createUserWithEmailAndPassword(
             email: emailController.text, password: passwordController.text)
-        .then((user) {
-      FirebaseFirestore.instance.collection("Users").doc(user.user!.uid).set({
+        .then((newUser) {
+      FirebaseFirestore.instance
+          .collection("Users")
+          .doc(newUser.user!.uid)
+          .set({
         "username": userNameController.text,
         "email": emailController.text
       }).whenComplete(() => Navigator.push(
-          context, MaterialPageRoute(builder: (_) => LoginScreen())));
+              context, MaterialPageRoute(builder: (_) => LoginScreen())));
     });
   }
 

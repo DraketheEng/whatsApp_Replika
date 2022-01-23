@@ -29,7 +29,7 @@ Future<UserCredential> signInWithGoogle() async {
     if (!documentSnapshot.exists) {
       FirebaseFirestore.instance
           .collection("Users")
-          .doc(credential.idToken)
+          .doc(result.user?.uid)
           .set({"username": user?.displayName, "email": user?.email});
     }
   }
